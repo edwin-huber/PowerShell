@@ -17,33 +17,61 @@
 
 $targetMailbox = "PFMB2"
 $sourceMailbox = "PFMB1" 
+$FoldersToMove = 10
 
 write-host "Fetching folders from mailbox ... " $sourceMailbox
 
 $FoldersInPFMailbox = Get-PublicFolder -Mailbox $sourceMailbox -ResidentFolders -recurse 
 
-# A hassle to use the List<T>, but makes life easier in the long run
+# A hassle to use the List, but makes life easier in the long run
 $PFid = new-object Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter
 $Type = [Type] $PFid.GetType()
 $base = [System.Collections.Generic.List``1]
 $PFidList = $base.MakeGenericType(@($Type))
 $ListO = [Activator]::CreateInstance($PFidList)
 
+$i = 0
 write-host "Adding folders to list..."
-foreach($a in $FoldersInPFMailbox) {$ListO.Add($a.Identity.ToString())}
 
-# Removing the Folder Id "\"
-# Could also check that this really is the Folder Id "\"
-$ListO.RemoveAt(0)
+foreach($a in $FoldersInPFMailbox)
+{
+  
+  if($i -lt $FoldersToMove )
+  {
+    
+     if($a.Identity.ToString().Length -gt 1)
+     {
+       write-host "Adding" $a.Identity.ToString()
+       $ListO.Add($a.Identity.ToString())
+     }
+     else
+     {
+       write-host "Not Adding " $a.Identity.ToString()
+      }
+  
+  }
+ $i++
+
+}
 
 write-host "Moving this many folders..."
 write-host $ListO.Count
 
 write-host "Creating move request for all folders in " $sourceMailbox " to " $targetMailbox
 
-read-host "Press any key to continue, ctrl + C to exit without making changes"
 
-# Turn the List into an array
-[Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter[]] $array = $ListO.ToArray() 
 
-New-PublicFolderMoveRequest -Folders $array -TargetMailbox $targetMailbox
+if ($ListO.Count -gt 0)
+{
+  read-host "Press any key to continue, ctrl + C to exit without making changes"
+  # Turn the List into an array
+  [Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter[]] $array = $ListO.ToArray() 
+
+  New-PublicFolderMoveRequest -Folders $array -TargetMailbox $targetMailbox
+}
+else
+{
+  write-host "No non-system folders found to move..."
+}
+
+# The End
