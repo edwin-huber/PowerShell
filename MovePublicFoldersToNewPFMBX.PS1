@@ -17,19 +17,33 @@
 
 $targetMailbox = "PFMB2"
 $sourceMailbox = "PFMB1" 
-write-host "Fetching folders from mailbox ... "
+
+write-host "Fetching folders from mailbox ... " $sourceMailbox
+
 $FoldersInPFMailbox = Get-PublicFolder -Mailbox $sourceMailbox -ResidentFolders -recurse 
-$CommaSeparatedListOfPFs = ""
+
+# A hassle to use the List<T>, but makes life easier in the long run
+$PFid = new-object Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter
+$Type = [Type] $PFid.GetType()
+$base = [System.Collections.Generic.List``1]
+$PFidList = $base.MakeGenericType(@($Type))
+$ListO = [Activator]::CreateInstance($PFidList)
+
 write-host "Adding folders to list..."
-foreach($a in $FoldersInPFMailbox) {$CommaSeparatedListOfPFs = $CommaSeparatedListOfPFs + $a.Identity.ToString() + ","}
-write-Host "Trimming unwanted chars off the ends..."
-$CommaSeparatedListOfPFs = $CommaSeparatedListOfPFs.Remove($CommaSeparatedListOfPFs.Length -1, 1)
-$CommaSeparatedListOfPFs = $CommaSeparatedListOfPFs.Remove(0, 2)
-write-host "Moving these folders..."
-write-host $CommaSeparatedListOfPFs
+foreach($a in $FoldersInPFMailbox) {$ListO.Add($a.Identity.ToString())}
+
+# Removing the Folder Id "\"
+# Could also check that this really is the Folder Id "\"
+$ListO.RemoveAt(0)
+
+write-host "Moving this many folders..."
+write-host $ListO.Count
+
 write-host "Creating move request for all folders in " $sourceMailbox " to " $targetMailbox
-write-host $CommaSeparatedListOfPFs.ToString().Normalize()
+
 read-host "Press any key to continue, ctrl + C to exit without making changes"
-write-host "creating array"
-[Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter[]] $array = $CommaSeparatedListOfPFs.ToString().Normalize().Split(",")
+
+# Turn the List into an array
+[Microsoft.Exchange.Configuration.Tasks.PublicFolderIdParameter[]] $array = $ListO.ToArray() 
+
 New-PublicFolderMoveRequest -Folders $array -TargetMailbox $targetMailbox
