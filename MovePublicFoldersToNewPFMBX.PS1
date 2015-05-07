@@ -13,6 +13,8 @@
 # designated as $sourceMailbox to a target mailbox designated as $targetMailbox
 # There is minimal error checking, and the limits of this script have not yet
 # been tested.
+# The total number of folders is limited by the $FoldersToMove varaiable.
+# This has not yet been tested with very high folder counts.
 # Use at your own risk.
 
 $targetMailbox = "PFMB2"
