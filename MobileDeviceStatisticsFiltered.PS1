@@ -13,7 +13,8 @@
 # In this case, we are just filtering on when the device partnership was created, and when it was
 # most likely re-provisioned (Policy reapplied)
 # We limit the number of devices, in order to avoid potential throttling, and to allow validation 
-# of theories against smaller data sets. (easier to analyse and evaulate)
+# of theories against smaller data sets. (easier to analyse and evaluate)
+# This is currently only a very basic implementation for proof of concept
 # Use at your own risk.
 
 $numberOfDevicesToQuery = 2000
@@ -29,12 +30,14 @@ $FileStream.WriteLine("Guid,UserDisplayName,DeviceModel,FirstSyncTime,LastPolicy
 write-host "Querying the first " + $numberOfDevicesToQuery + " devices ... "
 
 $DeviceList = get-mobiledevice -resultSize $numberOfDevicesToQuery 
-
-foreach ($device in $DeviceListist)
+$debugcount = 0
+foreach ($device in $DeviceList)
 {
 	if($debug)
 	{
+		write-host $debugcount
 		write-host $device.UserDisplayName
+		debugcount++
 	}
 	
 	
@@ -47,19 +50,14 @@ foreach ($device in $DeviceListist)
 	
 	$stats = get-mobiledevicestatistics $device
 	
-	if($debug)
-	{
-		Write-Host $stats.FirstSyncTime
-	}
-	
 	$FileStream.write($stats.FirstSyncTime)
 	$FileStream.write(",")
 	$FileStream.write($stats.LastPolicyUpdateTime)
-	$FileStream.write("\n")
+	$FileStream.write([System.Environment].NewLine)
 	#new line
 	
 }
   
-
+$FileStream.Close()
 
 # The End
