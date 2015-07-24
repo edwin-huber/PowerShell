@@ -37,7 +37,7 @@ foreach ($device in $DeviceList)
 	{
 		write-host $debugcount
 		write-host $device.UserDisplayName
-		debugcount++
+		$debugcount++
 	}
 	
 	
@@ -48,12 +48,12 @@ foreach ($device in $DeviceList)
 	$FileStream.write($device.DeviceModel)
 	$FileStream.write(",")
 	
-	$stats = get-mobiledevicestatistics $device
+	$stats = get-mobiledevicestatistics $device.Id
 	
 	$FileStream.write($stats.FirstSyncTime)
 	$FileStream.write(",")
 	$FileStream.write($stats.LastPolicyUpdateTime)
-	$FileStream.write([System.Environment].NewLine)
+	$FileStream.write([System.Environment]::NewLine)
 	#new line
 	
 }
