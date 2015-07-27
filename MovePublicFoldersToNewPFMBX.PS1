@@ -21,6 +21,9 @@ $targetMailbox = "PFMB2"
 $sourceMailbox = "PFMB1" 
 $FoldersToMove = 10
 
+# Theoretically this could be extended to use a file based input:
+[String[]]$FilterStrings = "mustermann", "mustermann2", "mustermann3"
+
 write-host "Fetching folders from mailbox ... " $sourceMailbox
 
 $FoldersInPFMailbox = Get-PublicFolder -Mailbox $sourceMailbox -ResidentFolders -recurse 
@@ -32,6 +35,11 @@ $base = [System.Collections.Generic.List``1]
 $PFidList = $base.MakeGenericType(@($Type))
 $ListO = [Activator]::CreateInstance($PFidList)
 
+
+# We need a filter to remove folders that are corrupt or causing problems
+
+
+
 $i = 0
 write-host "Adding folders to list..."
 
@@ -41,15 +49,36 @@ foreach($a in $FoldersInPFMailbox)
   if($i -lt $FoldersToMove )
   {
     
-     if($a.Identity.ToString().Length -gt 1)
-     {
-       write-host "Adding" $a.Identity.ToString()
-       $ListO.Add($a.Identity.ToString())
-     }
-     else
-     {
+	# Check to be sure that the folder is valid
+    if($a.Identity.ToString().Length -gt 1)
+    {
+		# reset the filter match
+		$filtermatch = $false
+		#Check to make sure that ID does not match one of the filter list
+		foreach($filterEntry in $FilterStrings)
+		{	
+			if($a.Identity.ToString().ToLower().Contains($filterEntry.ToLower()))
+			{
+				write-host $a.Identity.ToString() " matched filter entry " $filterEntry.ToLower()
+				$filtermatch = $true
+			}
+		}
+		
+		if($filtermatch)
+		{
+			write-host "Not Adding " $a.Identity.ToString()
+		}
+		else
+		{
+			write-host "Adding" $a.Identity.ToString()
+			$ListO.Add($a.Identity.ToString())
+		}
+       
+    }
+    else
+    {
        write-host "Not Adding " $a.Identity.ToString()
-      }
+    }
   
   }
  $i++
