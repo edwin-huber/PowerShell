@@ -29,4 +29,4 @@ $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $T
 
 Import-PSSession $Session -AllowClobber
 
-# Now Enjoy running the cmds
+# Now Enjoy running the Test-CmdLets
