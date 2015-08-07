@@ -30,3 +30,7 @@ $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $T
 Import-PSSession $Session -AllowClobber
 
 # Now Enjoy running the Test-CmdLets
+
+# As an alternative to the Test-* Cmdlets please consider:
+# get-exchangeserver | Get-ServerHealth | where { $_.AlertValue -like 'unhealthy' }
+# or similar...
